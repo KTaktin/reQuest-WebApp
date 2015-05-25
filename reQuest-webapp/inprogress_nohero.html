@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/active.css">
+        <script src="js/vendor/modernizr-2.6.2.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js?ver=1.4.2"></script>
+        <script src="http://maps.google.com/maps/api/js?sensor=false" type="text/javascript"></script>
+        <script src="https://cdn.firebase.com/js/client/2.0.4/firebase.js"></script>
+    </head>
+    <body ng-app="quest_giver">
+        <!--[if lt IE 7]>
+        <![endif]-->
+        <nav class="nav_bar">
+            <ul> <!-- href-"home.html"-->
+                    <li><a href="index.html">reQuest</a></li>
+                    <li><a href="quests.html">Quests</a></li>
+                    <li><a >Settings</a></li>
+                    <li><a >Top Questers</a></li>
+                    <li><a >About</a></li>
+
+                    <li id="logout"><a >Log Out</a></li>-
+            </ul>
+        </nav>
+        
+        
+        <!-- Add your site or application content here -->
+        <div id="wrapper1">
+            <div id="refresh_page_div">
+                <br>
+                <button onclick="refresh()" type="submit" class="refresh_button">Refresh page</button>
+                <form id="quest_form">
+                    
+                    <div class="form_entry">
+                        Your Quest has been submitted!
+                        <br>
+                        Messed up? Change before its too late!
+                    </div>
+                    
+                    <div class="form_entry">New Destination
+                        <br> 
+                        <input type="text" name="street_addr" class="addr_field" placeholder="Street Address">
+                        <br>
+                        <input type="text" name="apt_num" class="apt_num_field" placeholder="Additional">
+                        <br>
+                        <input type="text" name="city" class="city_field" placeholder="City">
+                        <input type="text" name="state" class="state_field" placeholder="State">
+                        
+                        
+                    </div>
+                    <div class="form_entry">
+                    
+                    New Objectives<br> <textarea type="text" name="quest" class="quest_field"></textarea>
+                    </div>
+                    <button type="submit" class="submit_button">I've Changed My Mind!</button>
+                </form>
+            </div>
+
+            
+            <div id="map"></div>
+
+            
+        </div>
+       
+        <script>
+            var myVar=setInterval(function(){check_claim()},10000)
+            
+            function check_claim(){
+                $.get("http://re-quest.herokuapp.com/available_quests", function(responseText){
+                    var data = JSON.parse(responseText);
+                    for(var i = 0; i < data.length; i++){
+                        if(data[i].state != 0 && data[i].name == "mike"){
+                            document.location.href = "inprogress_accepted.html";
+                        }
+                    }
+                });
+            }
+            
+            $(function(){
+                $.get("http://re-quest.herokuapp.com/available_quests", function(responseText){
+                    var data = JSON.parse(responseText);
+                    for(var i = 0; i < data.length; i++){
+                        if(data[i].state != 0 && data[i].name == "mike"){
+                            document.location.href = "inprogress_accepted.html";
+                        }
+                    }
+                });  
+            });
+            
+            function refresh(){
+                $.get("http://re-quest.herokuapp.com/available_quests", function(responseText){
+                    var data = JSON.parse(responseText);
+                    var bool = true;
+                    for(var i = 0; i < data.length; i++){
+                        if(data[i].state != 0 && data[i].name == "mike"){
+                            document.location.href = "inprogress_accepted.html";
+                            bool = false;
+                        }
+                    }
+                    if (bool) {                    
+                        document.location.href = "inprogress_nohero.html";
+                    }
+                });
+            }
+            
+            $('#quest_form').submit(function(event){
+                event.preventDefault();
+                //var txt = httpGet("http://re-quest.herokuapp.com/available_quests");
+                //alert(txt);
+                //document.location.href = "inprogress_nohero.html";
+                var $form = $( this );
+                var responseText;
+                $.get("http://re-quest.herokuapp.com/available_quests", function(responseText){
+                    console.log(responseText);
+                });
+                var addr_data = {
+                    address1:$form.find( "input[name='street_addr']" ).val(),
+                    address2:$form.find( "input[name='apt_num']" ).val(),
+                    city:$form.find( "input[name='city']" ).val(),
+                    state:$form.find( "input[name='state']" ).val()
+                };
+               
+                //alert($(this).serialize()); 
+                var quest_data = {
+                    user:"mike",
+                    title:$form.find( "input[name='quest_name']" ).val(),
+                    address:addr_data,
+                    cost:parseInt($form.find( "input[name='reward']" ).val()),
+                    state:0
+                };
+                
+                // Send the data using post
+                console.log(JSON.stringify(quest_data));
+                
+                var posting = $.post("http://re-quest.herokuapp.com/available_quests", JSON.stringify(quest_data));
+                document.location.href = "inprogress_nohero.html";
+                
+              /* posting.done(function( data ) {
+                    document.location.href = "inprogress_nohero.html";
+                });
+                posting.fail(function( data ) {
+                    alert("Posting failed!");
+                });*/
+            });
+        </script>
+        
+        <script>
+            $(function(){
+               $.get("http://re-quest.herokuapp.com/available_quests", function(responseText){
+                var data = JSON.parse(responseText);
+                
+
+
+                });      
+            });
+        </script>
+
+        <script type="text/javascript">
+            var mapped;
+            
+                
+                $.get("http://re-quest.herokuapp.com/available_quests", function(responseText){
+                    var data = JSON.parse(responseText);
+                    //console.log(JSON.stringify(data));
+                    var j;
+                var i = data.length;
+                mapped = new Array(1);
+                var lat;
+                var long;
+                for(j = 0; j < i; j++)
+                {
+                    if(data[j].user == 'mike')
+                    {
+                        break;
+                    }
+                }
+                //console.log(JSON.stringify(j));
+                    lat = data[j].address.latude;
+                    lot = data[j].address.lotude;
+                    var addr2 = data[j].address.address2;
+                    
+                    var info = data[j].user + ": " + data[j].address.address1;
+                    if(addr2 == null)
+                        info += ', ';
+                    else
+                        info += ' ' + addr2 + ', ';
+
+                    info += data[j].address.city + ', ' + data[j].address.state + ' ' + data[j].address.zip;
+                    console.log(JSON.stringify(info));
+                    mapped = [info, lat, lot];
+                
+                localStorage.setItem("temp", JSON.stringify(mapped));
+                console.log(JSON.stringify(mapped));
+                });
+                mapped = localStorage.getItem("temp");
+                mapped = JSON.parse(mapped);
+                //console.log(JSON.stringify(mapped));
+                var map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 13,
+      center: new google.maps.LatLng(mapped[1], mapped[2]),
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    });
+
+    var infowindow = new google.maps.InfoWindow();
+
+    var marker, i;
+
+      marker = new google.maps.Marker({
+        position: new google.maps.LatLng(mapped[1], mapped[2]),
+        map: map
+      });
+
+      google.maps.event.addListener(marker, 'click', (function(marker, i) {
+        return function() {
+          infowindow.setContent(mapped[0]);
+          infowindow.open(map, marker);
+        }
+      })(marker, i));
+
+        </script>
+        
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')</script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js?ver=1.4.2"></script>
+
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <script>
+            (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+            function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+            e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+            e.src='//www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+            ga('create','UA-XXXXX-X');ga('send','pageview');
+        </script>
+    </body>
+</html>

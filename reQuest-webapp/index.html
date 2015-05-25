@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">
+        <script src="js/vendor/modernizr-2.6.2.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js?ver=1.4.2"></script>
+        <script src="http://maps.google.com/maps/api/js?sensor=false" type="text/javascript"></script>
+        <script src="https://cdn.firebase.com/js/client/2.0.4/firebase.js"></script>    
+    </head>
+    <body ng-app="quest_giver">
+        <!--[if lt IE 7]>
+        <![endif]-->
+        <nav class="nav_bar">
+            <ul> <!-- href-"home.html"-->
+                    <li><a href="index.html">reQuest</a></li>
+                    <li><a href="quests.html">Quests</a></li>
+                    <li><a >Settings</a></li>
+                    <li><a >Top Questers</a></li>
+                    <li><a >About</a></li>
+
+                    <li id="logout"><a >Log Out</a></li>-
+            </ul>
+        </nav>
+        
+        
+        <!-- Add your site or application content here -->
+        <div id="wrapper1">
+                <form action="inprogress_nohero.html" id="quest_form">
+                    <div class="form_entry">Welcome to reQuest, User!</div>
+            
+                    <div class="form_entry">Home Base
+                        <br> 
+                        <input type="text" name="street_addr" class="addr_field" placeholder="Street Address">
+                        <br>
+                        <input type="text" name="apt_num" class="apt_num_field" placeholder="Additional">
+                        <br>
+                        <input type="text" name="city" class="city_field" placeholder="City">
+                        <input type="text" name="state" class="state_field" placeholder="State">
+                        <br> 
+                        <button type="submit" class="new_loc_button">Set new location</button>
+                    </div>
+                    
+                    <div class="form_entry">
+                    Your Noble Quest<input type="text" name="quest_name" class="title_field"></input>
+                    </div>
+                    
+                    <div class="form_entry_small">
+                    Quest Objectives<br> <textarea name="quest_desc" class="quest_field"></textarea>
+                    </div>
+                    
+                    <div class="form_entry">Dungeon Rewards: $<input type="text" name="reward" class="reward_field"></div>
+                    
+                    <button type="submit" class="submit_button">Post Your Quest!</button>
+                </form>
+                
+             <div id="map"></div>
+            <!--<iframe
+                id="mapstat"
+                frameborder="0" style="border:0"
+                src="https://www.google.com/maps/embed/v1/place?key=AIzaSyDorWiNRznCIT3OZi0N-F5O837gGvnDRRU
+                &q=UIUC">
+            </iframe>-->
+            
+        </div>
+    
+        
+        <script>
+            /*function httpGet(url){
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4) {
+                        alert(JSON.parse(xhr.responseText));
+                    }
+                }
+                xhr.open('GET', url, true);
+                xhr.send(null);
+                return xhr.responseTxt;
+            }*/
+            // Attach a submit handler to the form
+            /*function processForm(e) {
+            if (e.preventDefault) e.preventDefault();*/
+            
+            $('#quest_form').submit(function(event){
+                event.preventDefault();
+                //var txt = httpGet("http://re-quest.herokuapp.com/available_quests");
+                //alert(txt);
+                //document.location.href = "inprogress_nohero.html";
+                var $form = $( this );
+                $.get("http://re-quest.herokuapp.com/available_quests", function(responseText){
+                    var data = JSON.parse(responseText);
+                    console.log(JSON.stringify(responseText));
+                    if(data.state != 0){
+                        //document.location.href = "inprogress_accepted";
+                    }
+                });
+                
+                var addr_data = {
+                    address1:$form.find( "input[name='street_addr']" ).val(),
+                    address2:$form.find( "input[name='apt_num']" ).val(),
+                    city:$form.find( "input[name='city']" ).val(),
+                    zip:60606,
+                    state:$form.find( "input[name='state']" ).val(),
+                    latude:32,
+                    lotude:32,
+                };
+
+                //alert($(this).serialize()); 
+                var quest_data = {
+                    user:"art",
+                    title:$form.find("input[name='quest_name']").val(),
+                    //description:$form.find("input[name='quest_desc']").text(),
+                    description:"aa",
+                    address:addr_data,
+                    cost:parseInt($form.find("input[name='reward']").val()),
+                    state:0
+                };
+                
+                // Send the data using post
+                console.log(JSON.stringify(quest_data));
+                
+                /*var request = new XMLHttpRequest();
+                var params = JSON.stringify(quest_data);
+                request.open('POST', "http://re-quest.herokuapp.com/add_quest", true);
+                request.onreadystatechange = function() {if (request.readyState==4) console.log("It worked!");};
+                request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                request.send(params);*/
+                
+               
+                var posting = $.post("http://re-quest.herokuapp.com/add_quest", JSON.stringify(quest_data));
+                document.location.href = "inprogress_nohero.html";
+                console.log("aaa");
+                
+              /* posting.done(function( data ) {
+                    document.location.href = "inprogress_nohero.html";
+                });
+                posting.fail(function( data ) {
+                    alert("Posting failed!");
+                });*/
+            });
+           
+            // You must return false to prevent the default form behavior
+            //}
+            /*
+            var form = document.getElementById("quest_form");
+            if (form.attachEvent) {
+                form.attachEvent("submit", processForm);
+            }
+            else {
+                form.addEventListener("submit", processForm);
+            }*/
+           /* $("#form").submit(function(event){
+                // Stop form from submitting normally
+                window.location = "www.google.com";
+                
+            });*/
+        /*event.preventDefault();
+        
+                // Get some values from elements on the page:
+                var $form = $( this );
+                var addr_data = {
+                    "address1":$form.find( "input[name='street_addr']" ).val(),
+                    "address2":$form.find( "input[name='apt_num']" ).val(),
+                    "city":$form.find( "input[name='city']" ).val(),
+                    "state":$form.find( "input[name='state']" ).val()
+                };
+                var quest_data = {
+                    "user":"alex",
+                    "title":$form.find( "input[name='quest_name']" ).val(),
+                    "address":addr_data,
+                    "cost":parseInt($form.find( "input[name='reward']" ).val())
+                };
+                var url;
+                
+                // Send the data using post
+                var posting = $.post( url, quest_data,
+                    function(data){ document.location.href = inprogress_nohere.html;},
+                    "json");*/
+        </script>
+        
+        <script>
+            $(function(){
+               $.get("http://re-quest.herokuapp.com/available_quests", function(responseText){
+                var data = JSON.parse(responseText);
+                
+
+
+                });      
+            });
+        </script>
+
+        <script type="text/javascript">
+            var mapped;
+            
+                
+                $.get("http://re-quest.herokuapp.com/available_quests", function(responseText){
+                    var data = JSON.parse(responseText);
+                    //console.log(JSON.stringify(data));
+                    var j;
+                var i = data.length;
+                mapped = new Array(1);
+                var lat;
+                var long;
+                for(j = 0; j < i; j++)
+                {
+                    if(data[j].user == 'mike')
+                    {
+                        break;
+                    }
+                }
+                //console.log(JSON.stringify(j));
+                    lat = data[j].address.latude;
+                    lot = data[j].address.lotude;
+                    var addr2 = data[j].address.address2;
+                    
+                    var info = data[j].user + ": " + data[j].address.address1;
+                    if(addr2 == null)
+                        info += ', ';
+                    else
+                        info += ' ' + addr2 + ', ';
+
+                    info += data[j].address.city + ', ' + data[j].address.state + ' ' + data[j].address.zip;
+                    console.log(JSON.stringify(info));
+                    mapped = [info, lat, lot];
+                
+                localStorage.setItem("temp", JSON.stringify(mapped));
+                console.log(JSON.stringify(mapped));
+                });
+                mapped = localStorage.getItem("temp");
+                mapped = JSON.parse(mapped);
+                //console.log(JSON.stringify(mapped));
+                var map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 13,
+      center: new google.maps.LatLng(mapped[1], mapped[2]),
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    });
+
+    var infowindow = new google.maps.InfoWindow();
+
+    var marker, i;
+
+      marker = new google.maps.Marker({
+        position: new google.maps.LatLng(mapped[1], mapped[2]),
+        map: map
+      });
+
+      google.maps.event.addListener(marker, 'click', (function(marker, i) {
+        return function() {
+          infowindow.setContent(mapped[0]);
+          infowindow.open(map, marker);
+        }
+      })(marker, i));
+
+        </script>
+        
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <script>
+            (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+            function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+            e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+            e.src='//www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+            ga('create','UA-XXXXX-X');ga('send','pageview');
+        </script>
+    </body>
+</html>
